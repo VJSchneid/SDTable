@@ -5,9 +5,26 @@
 int main() {
     database::SDTable sdtable;
     int rValue;
-    unsigned int eSize[10] = {4, 10, 8, 255, 50659, 448, 4876, 1257, 522322, 554878};
-    rValue = sdtable.create("test.file", 10, eSize);
+    unsigned int eSize[3] = {4, 2, 4};
+    rValue = sdtable.open("test.file");
+    if (rValue) {
+        return rValue + 10;
+    }
+    char buffer[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
+    sdtable.clearLine(3);
+    sdtable.clearLine(3);
+    sdtable.clearLine(4);
+    sdtable.clearLine(0);
+    rValue = sdtable.addLine(buffer);
+    rValue = sdtable.addLine(buffer);
+    rValue = sdtable.addLine(buffer);
+    rValue = sdtable.addLine(buffer);
+    rValue = sdtable.addLine(buffer);
+    rValue = sdtable.addLine(buffer);
+
+    sdtable.clearLine(3);
+    rValue = sdtable.addLine(buffer);
     /*
     timeval start, end;
     double time;

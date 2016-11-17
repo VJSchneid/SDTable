@@ -9,6 +9,7 @@
 
 #include <cstdio>
 #include <cstdint>
+#include <sys/stat.h>
 
 #define SDTABLE_VERSION_1           2
 #define SDTABLE_VERSION_2           0
@@ -21,7 +22,9 @@ namespace database {
         FILE* file;
         char* fileBuffer;
 
-        struct Head {
+        enum Frame {CONTENT, FREEDLINE};
+
+        struct {
             // Static Content
             __uint8_t   version1;
             __uint8_t   version2;
@@ -35,12 +38,19 @@ namespace database {
             __uint32_t* elementSize;
         } head;
 
+        void setFilePos(unsigned int line, Frame frame = CONTENT);
+
         void flushHead();
         bool writeHead();
         bool readHead();
         void setHead(__uint32_t elementCount, __uint32_t lineCount, __uint32_t freedLineCount,
                      __uint32_t* elementSize);
         int checkHead();
+
+        int requestLine();
+        bool removeLine(unsigned int line);
+        bool freedLine(__uint32_t line);
+        bool checkFreed(unsigned int line);
 
     public:
         SDTable();
@@ -50,7 +60,9 @@ namespace database {
         int create(const char* path, unsigned int elementCount, unsigned int* elementSize);
         int open(const char* path, unsigned int bufSize = FILE_DEFAULT_BUFFER_SIZE);
         void close();
-
+        // Return value of -1 means an error occurred
+        int addLine(void* container);
+        bool clearLine(unsigned int line);
     };
 }
 

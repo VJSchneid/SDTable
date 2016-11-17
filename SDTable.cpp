@@ -130,6 +130,7 @@ namespace database {
     }
 
     inline int SDTable::checkHead() {
+        struct stat statBuf;
         __uint32_t lineSize = 0;
         // Check Version
         if (head.version1 != SDTABLE_VERSION_1) {
@@ -150,6 +151,12 @@ namespace database {
         // Check bodySize
         if (head.bodySize != head.lineCount * lineSize) {
             return 4;
+        }
+        // Get FileSize
+        fstat(fileno(file), &statBuf);
+        // Check FileSize
+        if (statBuf.st_size < head.headerSize + head.bodySize + head.freedLineCount * 4) {
+            return 5;
         }
         return 0;
     }
@@ -175,4 +182,107 @@ namespace database {
         head.freedLineCount = freedLineCount;
         head.elementSize    = elementSize;
     }
+
+    int SDTable::addLine(void *container) {
+        // Request line to store content
+        int line = requestLine();
+        if (line == -1) {
+            return -1;
+        }
+        // Save line
+        setFilePos((unsigned int)line);
+        if (fwrite(container, 1, head.lineSize, file) != head.lineSize) {
+            removeLine((unsigned int) line);
+            return -1;
+        }
+        // Save Head
+        if (!writeHead()) {
+            return -1;
+        }
+        return line;
+    }
+
+    inline int SDTable::requestLine() {
+        if (head.freedLineCount) {
+            __uint32_t line;
+            head.freedLineCount--;
+            setFilePos(head.freedLineCount, FREEDLINE);
+            // If an error occur return -1
+            if (fread(&line, 4, 1, file) != 1) {
+                return -1;
+            }
+            return (int) line;
+        }
+        else {
+            head.bodySize += head.lineSize;
+            head.lineCount++;
+            return head.lineCount - 1;
+        }
+    }
+
+    inline void SDTable::setFilePos(unsigned int line, SDTable::Frame frame) {
+        // Allocate and set file position
+        switch (frame) {
+            case CONTENT:
+                fseek(file, head.headerSize + head.lineSize * line , SEEK_SET);
+                return;
+            case FREEDLINE:
+                fseek(file, head.headerSize + head.bodySize + 4 * line , SEEK_SET);
+                return;
+        }
+    }
+
+    inline bool SDTable::removeLine(unsigned int line) {
+        if (line >= head.lineCount) {
+            return false;
+        }
+        // Check if line is the last content in file
+        if (head.freedLineCount || line < head.lineCount - 1) {
+            return checkFreed(line) || freedLine(line);
+        }
+        else {
+            // Line is last content in file
+            head.lineCount--;
+            head.bodySize -= head.lineSize;
+            return true;
+        }
+    }
+
+    inline bool SDTable::freedLine(__uint32_t line) {  // TODO optimize this
+        char cache = 0;
+        // Clear all chars in line
+        setFilePos(line);
+        for (int x = head.lineSize - 1; x >= 0; x--) {
+            if (fwrite(&cache, 1, 1, file) != 1) {
+                return false;
+            }
+        }
+        // Mark as FreedLine in Footer
+        setFilePos(head.freedLineCount, FREEDLINE);
+        if (fwrite(&line, 4, 1, file) != 1) {
+            return false;
+        }
+        head.freedLineCount++;
+        return true;
+    }
+
+    bool SDTable::clearLine(unsigned int line) {
+        return removeLine(line) && writeHead();
+    }
+
+    bool SDTable::checkFreed(unsigned int line) {
+        // Check freed state
+        uint32_t refLine;
+        setFilePos(0, FREEDLINE);
+        for (int x = head.freedLineCount - 1; x >= 0; x--) {
+            if (fread(&refLine, 4, 1, file) != 1) {
+                return false;
+            }
+            if (refLine == line) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
