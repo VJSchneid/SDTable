@@ -64,6 +64,7 @@ namespace database {
         int addLine(void* container);
         bool clearLine(unsigned int line);
         bool getElement(unsigned int line, unsigned int element, void* container);
+        bool setElement(unsigned int line, unsigned int element, void* container);
     };
 }
 

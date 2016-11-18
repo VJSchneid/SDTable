@@ -16,15 +16,15 @@ int main() {
     double time;
     gettimeofday(&start, NULL);
 
-    for (long x = 100000000; x > 0; x--) {
-        sdtable.getElement(x, 2, buffer);
+    for (long x = 10000000; x > 0; x--) {
+        sdtable.setElement(x, 2, buffer);
     }
 
     gettimeofday(&end, NULL);
 
     time = ((end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000);
 
-    printf("%d lines per second\n", (int)(100000000/time));
+    printf("%d lines per second\n", (int)(10000000/time));
 
     return rValue;
 }

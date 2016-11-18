@@ -303,4 +303,20 @@ namespace database {
         return fread(container, 1, head.elementSize[element], file) == head.elementSize[element];
     }
 
+    bool SDTable::setElement(unsigned int line, unsigned int element, void *container) {
+        unsigned int offset = 0;
+        if (element >= head.elementCount || line >= head.lineCount) {
+            return false;
+        }
+        // Allocate offset
+        for (int x = element - 1; x >= 0; x--) {
+            offset += head.elementSize[x];
+        }
+        // Set file position
+        setFilePos(line, CONTENT, offset);
+        // Write content to file
+        return fwrite(container, 1, head.elementSize[element], file) == head.elementSize[element];
+    }
+
+
 }
