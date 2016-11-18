@@ -38,7 +38,7 @@ namespace database {
             __uint32_t* elementSize;
         } head;
 
-        void setFilePos(unsigned int line, Frame frame = CONTENT);
+        void setFilePos(unsigned int line, Frame frame = CONTENT, unsigned int offset = 0);
 
         void flushHead();
         bool writeHead();
@@ -63,6 +63,7 @@ namespace database {
         // Return value of -1 means an error occurred
         int addLine(void* container);
         bool clearLine(unsigned int line);
+        bool getElement(unsigned int line, unsigned int element, void* container);
     };
 }
 

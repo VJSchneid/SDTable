@@ -223,14 +223,14 @@ namespace database {
         }
     }
 
-    inline void SDTable::setFilePos(unsigned int line, SDTable::Frame frame) {
+    inline void SDTable::setFilePos(unsigned int line, SDTable::Frame frame, unsigned int offset) {
         // Allocate and set file position
         switch (frame) {
             case CONTENT:
-                fseek(file, head.headerSize + head.lineSize * line , SEEK_SET);
+                fseek(file, head.headerSize + head.lineSize * line + offset, SEEK_SET);
                 return;
             case FREEDLINE:
-                fseek(file, head.headerSize + head.bodySize + 4 * line , SEEK_SET);
+                fseek(file, head.headerSize + head.bodySize + 4 * line + offset, SEEK_SET);
                 return;
         }
     }
@@ -286,6 +286,21 @@ namespace database {
             }
         }
         return false;
+    }
+
+    bool SDTable::getElement(unsigned int line, unsigned int element, void* container) {
+        unsigned int offset = 0;
+        if (element >= head.elementCount || line >= head.lineCount) {
+            return false;
+        }
+        // Allocate offset
+        for (int x = element - 1; x >= 0; x--) {
+            offset += head.elementSize[x];
+        }
+        // Set file position
+        setFilePos(line, CONTENT, offset);
+        // Read content from file
+        return fread(container, 1, head.elementSize[element], file) == head.elementSize[element];
     }
 
 }
