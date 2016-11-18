@@ -104,6 +104,9 @@ namespace database {
     }
 
     inline bool SDTable::writeHead() {
+        if (!file) {
+            return false;
+        }
         // Set position to beginning of file
         rewind(file);
         // Write static content to file
