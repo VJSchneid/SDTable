@@ -61,10 +61,12 @@ namespace database {
         // Close file
         if (file) {
             fclose(file);
+            file = NULL;
         }
         // Remove buffer
         if (fileBuffer) {
             delete fileBuffer;
+            fileBuffer = NULL;
         }
     }
 
