@@ -12,6 +12,8 @@ namespace database {
         file = NULL;
         fileBuffer = NULL;
         head.elementSize = NULL;
+        // Flush Head
+        flushHead();
     }
 
     SDTable::SDTable(const char *path, unsigned int bufSize) {
