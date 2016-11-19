@@ -13,7 +13,7 @@ int main() {
     char buffer[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     char buffer2[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    rValue = sdtable.addLine(buffer);
+    rValue = sdtable.addLine();
     //rValue = sdtable.getLine(0, buffer2);
 
     timeval start, end;

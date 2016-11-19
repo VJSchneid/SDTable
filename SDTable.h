@@ -71,9 +71,10 @@ namespace database {
         bool setLine(unsigned int line, void* container);
         bool getLine(unsigned int line, void* container);
 
-        // ABFRAGE INTERFACE
-        unsigned char   getVersion1();
-        unsigned char   getVersion2();
+        // HEADER QUERY INTERFACE
+        unsigned short getVersion1();
+
+        unsigned short getVersion2();
         unsigned int    getHeaderSize();
         unsigned int    getElementCount();
         unsigned int    getLineSize();
@@ -81,7 +82,6 @@ namespace database {
         unsigned long   getBodySize();
         unsigned int    getFreedLineCount();
         unsigned int    getElementSize(unsigned int element);
-
     };
 }
 

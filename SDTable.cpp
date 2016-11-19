@@ -346,5 +346,44 @@ namespace database {
         return fwrite(container, 1, head.lineSize, file) == head.lineSize;
     }
 
+    unsigned short SDTable::getVersion1() {
+        return (unsigned short) head.version1;
+    }
+
+    unsigned short SDTable::getVersion2() {
+        return (unsigned short) head.version2;
+    }
+
+    unsigned int SDTable::getHeaderSize() {
+        return (unsigned int) head.headerSize;
+    }
+
+    unsigned int SDTable::getElementCount() {
+        return (unsigned int) head.elementCount;
+    }
+
+    unsigned int SDTable::getLineSize() {
+        return (unsigned int) head.lineSize;
+    }
+
+    unsigned int SDTable::getLineCount() {
+        return (unsigned int) head.lineCount;
+    }
+
+    unsigned long SDTable::getBodySize() {
+        return (unsigned long) head.bodySize;
+    }
+
+    unsigned int SDTable::getFreedLineCount() {
+        return (unsigned int) head.freedLineCount;
+    }
+
+    unsigned int SDTable::getElementSize(unsigned int element) {
+        if (element >= head.elementCount) {
+            return 0;
+        }
+        return head.elementSize[element];
+    }
+
 
 }
