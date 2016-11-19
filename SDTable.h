@@ -73,7 +73,6 @@ namespace database {
 
         // HEADER QUERY INTERFACE
         unsigned short getVersion1();
-
         unsigned short getVersion2();
         unsigned int    getHeaderSize();
         unsigned int    getElementCount();

@@ -263,7 +263,7 @@ namespace database {
         }
     }
 
-    inline bool SDTable::freedLine(__uint32_t line) {  // TODO optimize this
+    inline bool SDTable::freedLine(__uint32_t line) {
         char cache = 0;
         // Clear all chars in line
         setFilePos(line);
