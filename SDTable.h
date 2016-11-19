@@ -13,8 +13,8 @@
 
 #define SDTABLE_VERSION_1           2
 #define SDTABLE_VERSION_2           0
-#define HEADER_STATIC_SIZE          26
-#define FILE_DEFAULT_BUFFER_SIZE    512
+#define HEADER_STATIC_SIZE          (sizeof(head) - sizeof(head.elementSize))
+#define FILE_DEFAULT_BUFFER_SIZE    256
 
 namespace database {
     class SDTable {
@@ -26,13 +26,13 @@ namespace database {
 
         struct {
             // Static Content
-            __uint8_t   version1;
-            __uint8_t   version2;
+            __uint16_t  version1;
+            __uint16_t  version2;
             __uint32_t  headerSize;
             __uint32_t  elementCount;
             __uint32_t  lineSize;
+            __uint64_t  bodySize;
             __uint32_t  lineCount;
-            __uint32_t  bodySize;
             __uint32_t  freedLineCount;
             // Dynamic Content
             __uint32_t* elementSize;
@@ -57,14 +57,31 @@ namespace database {
         SDTable(const char* path, unsigned int bufSize = FILE_DEFAULT_BUFFER_SIZE);
         ~SDTable();
 
-        int create(const char* path, unsigned int elementCount, unsigned int* elementSize);
+        int create(const char* path, unsigned int elementCount, unsigned int* elementSize, unsigned int bufSize = FILE_DEFAULT_BUFFER_SIZE);
         int open(const char* path, unsigned int bufSize = FILE_DEFAULT_BUFFER_SIZE);
         void close();
+
         // Return value of -1 means an error occurred
         int addLine(void* container);
         bool clearLine(unsigned int line);
+
         bool getElement(unsigned int line, unsigned int element, void* container);
         bool setElement(unsigned int line, unsigned int element, void* container);
+
+        bool setLine(unsigned int line, void* container);
+        bool getLine(unsigned int line, void* container);
+
+        // ABFRAGE INTERFACE
+        unsigned char   getVersion1();
+        unsigned char   getVersion2();
+        unsigned int    getHeaderSize();
+        unsigned int    getElementCount();
+        unsigned int    getLineSize();
+        unsigned int    getLineCount();
+        unsigned long   getBodySize();
+        unsigned int    getFreedLineCount();
+        unsigned int    getElementSize(unsigned int element);
+
     };
 }
 

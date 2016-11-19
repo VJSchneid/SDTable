@@ -66,7 +66,7 @@ namespace database {
         }
     }
 
-    int SDTable::create(const char *path, unsigned int elementCount, unsigned int *elementSize) {
+    int SDTable::create(const char *path, unsigned int elementCount, unsigned int *elementSize, unsigned int bufSize) {
         __uint32_t* elementSizeDyn;
         // If file opened close it
         close();
@@ -87,6 +87,20 @@ namespace database {
         // Write content to file
         if (!writeHead()) {
             return 2;
+        }
+        // Reopen file to make reading content possible
+        close();
+        file = fopen(path, "rb+");
+        if (!file) {
+            return 3;
+        }
+        // Create file Buffer
+        if (bufSize) {
+            fileBuffer = new char[bufSize];
+            setvbuf(file, fileBuffer, _IOFBF, bufSize);
+        }
+        else {
+            setvbuf(file, NULL, _IONBF, 0);
         }
         return 0;
     }
@@ -110,11 +124,9 @@ namespace database {
         // Set position to beginning of file
         rewind(file);
         // Write static content to file
-        if (fwrite(&head, 1, HEADER_STATIC_SIZE, file) != HEADER_STATIC_SIZE) {
-            return false;
-        }
+        return fwrite(&head, 1, HEADER_STATIC_SIZE, file) == HEADER_STATIC_SIZE &&
+               fwrite(head.elementSize, 4, head.elementCount, file) == head.elementCount;
         // Write dynamic content to file
-        return fwrite(head.elementSize, 4, head.elementCount, file) == head.elementCount;
     }
 
     inline bool SDTable::readHead() {
@@ -316,6 +328,22 @@ namespace database {
         setFilePos(line, CONTENT, offset);
         // Write content to file
         return fwrite(container, 1, head.elementSize[element], file) == head.elementSize[element];
+    }
+
+    bool SDTable::getLine(unsigned int line, void *container) {
+        if (line >= head.lineCount) {
+            return false;
+        }
+        setFilePos(line);
+        return fread(container, 1, head.lineSize, file) == head.lineSize;
+    }
+
+    bool SDTable::setLine(unsigned int line, void *container) {
+        if (line >= head.lineCount) {
+            return false;
+        }
+        setFilePos(line);
+        return fwrite(container, 1, head.lineSize, file) == head.lineSize;
     }
 
 
