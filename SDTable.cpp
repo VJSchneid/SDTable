@@ -240,6 +240,9 @@ namespace database {
     }
 
     inline void SDTable::setFilePos(unsigned int line, SDTable::Frame frame, unsigned int offset) {
+        if (!file) {
+            return;
+        }
         // Allocate and set file position
         switch (frame) {
             case CONTENT:

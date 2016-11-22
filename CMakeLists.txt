@@ -8,4 +8,5 @@ set(SOURCE_FILES
         SDTable.h
         )
 
-add_library(sdtable ${SOURCE_FILES})
+add_executable(sdtable ${SOURCE_FILES})
+#add_library(sdtable ${SOURCE_FILES})
