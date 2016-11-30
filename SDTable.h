@@ -71,9 +71,11 @@ namespace database {
         bool setLine(unsigned int line, void* container);
         bool getLine(unsigned int line, void* container);
 
+        bool isFreed(unsigned int line);
+
         // HEADER QUERY INTERFACE
-        unsigned short getVersion1();
-        unsigned short getVersion2();
+        unsigned short  getVersion1();
+        unsigned short  getVersion2();
         unsigned int    getHeaderSize();
         unsigned int    getElementCount();
         unsigned int    getLineSize();

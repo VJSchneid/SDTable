@@ -292,7 +292,7 @@ namespace database {
         return removeLine(line) && writeHead();
     }
 
-    bool SDTable::checkFreed(unsigned int line) {
+    inline bool SDTable::checkFreed(unsigned int line) {
         // Check freed state
         uint32_t refLine;
         setFilePos(0, FREEDLINE);
@@ -353,6 +353,10 @@ namespace database {
         return fwrite(container, 1, head.lineSize, file) == head.lineSize;
     }
 
+    bool SDTable::isFreed(unsigned int line) {
+        return checkFreed(line);
+    }
+
     unsigned short SDTable::getVersion1() {
         return (unsigned short) head.version1;
     }
@@ -391,6 +395,5 @@ namespace database {
         }
         return head.elementSize[element];
     }
-
 
 }
