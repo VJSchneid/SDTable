@@ -6,6 +6,9 @@
 
 #include "SDTable.h"
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
+
 namespace database {
     SDTable::SDTable() {
         // Set NULL pointers
@@ -26,8 +29,6 @@ namespace database {
     SDTable::~SDTable() {
         // Close file
         close();
-        // Flush head
-        flushHead();
     }
 
     int SDTable::open(const char *path, unsigned int bufSize) {
@@ -68,10 +69,13 @@ namespace database {
             delete fileBuffer;
             fileBuffer = NULL;
         }
+        // Flush head
+        flushHead();
     }
 
     int SDTable::create(const char *path, unsigned int elementCount, unsigned int *elementSize, unsigned int bufSize) {
         __uint32_t* elementSizeDyn;
+        int rValue;
         // If file opened close it
         close();
         // Open file
@@ -93,20 +97,11 @@ namespace database {
             return 2;
         }
         // Reopen file to make reading content possible
-        close();
-        file = fopen(path, "rb+");
-        if (!file) {
-            return 3;
+        rValue = open(path, bufSize);
+        if (rValue) {
+            rValue += 2;
         }
-        // Create file Buffer
-        if (bufSize) {
-            fileBuffer = new char[bufSize];
-            setvbuf(file, fileBuffer, _IOFBF, bufSize);
-        }
-        else {
-            setvbuf(file, NULL, _IONBF, 0);
-        }
-        return 0;
+        return rValue;
     }
 
     inline void SDTable::flushHead() {
@@ -122,19 +117,18 @@ namespace database {
     }
 
     inline bool SDTable::writeHead() {
-        if (!file) {
-            return false;
+        if (file) {
+            // Set position to beginning of file
+            rewind(file);
+            // Write static & dynamic content to file
+            return fwrite(&head, 1, HEADER_STATIC_SIZE, file) == HEADER_STATIC_SIZE &&
+                   fwrite(head.elementSize, 4, head.elementCount, file) == head.elementCount;
         }
-        // Set position to beginning of file
-        rewind(file);
-        // Write static content to file
-        return fwrite(&head, 1, HEADER_STATIC_SIZE, file) == HEADER_STATIC_SIZE &&
-               fwrite(head.elementSize, 4, head.elementCount, file) == head.elementCount;
-        // Write dynamic content to file
+        return false;
     }
 
     inline bool SDTable::readHead() {
-        // Flush head
+        // Flush head, because of deleting dynamic memory
         flushHead();
         // Set position to beginning of file
         rewind(file);
@@ -188,7 +182,7 @@ namespace database {
         for (int x = elementCount - 1; x >= 0; x--) {
             lineSize += elementSize[x];
         }
-        // Flush current head
+        // Flush current head, because of deleting dynamic memory
         flushHead();
         // Store content
         head.version1       = SDTABLE_VERSION_1;
@@ -203,22 +197,25 @@ namespace database {
     }
 
     int SDTable::addLine(void *container) {
-        // Request line to store content
-        int line = requestLine();
-        if (line == -1) {
-            return -1;
+        if (file) {
+            // Request line to store content
+            int line = requestLine();
+            if (line == -1) {
+                return -1;
+            }
+            // Save line
+            setFilePos((unsigned int)line);
+            if (fwrite(container, 1, head.lineSize, file) != head.lineSize) {
+                removeLine((unsigned int) line);
+                return -1;
+            }
+            // Save Head
+            if (!writeHead()) {
+                return -1;
+            }
+            return line;
         }
-        // Save line
-        setFilePos((unsigned int)line);
-        if (fwrite(container, 1, head.lineSize, file) != head.lineSize) {
-            removeLine((unsigned int) line);
-            return -1;
-        }
-        // Save Head
-        if (!writeHead()) {
-            return -1;
-        }
-        return line;
+        return -1;
     }
 
     inline int SDTable::requestLine() {
@@ -240,17 +237,16 @@ namespace database {
     }
 
     inline void SDTable::setFilePos(unsigned int line, SDTable::Frame frame, unsigned int offset) {
-        if (!file) {
-            return;
-        }
-        // Allocate and set file position
-        switch (frame) {
-            case CONTENT:
-                fseek(file, head.headerSize + head.lineSize * line + offset, SEEK_SET);
-                return;
-            case FREEDLINE:
-                fseek(file, head.headerSize + head.bodySize + 4 * line + offset, SEEK_SET);
-                return;
+        if (file) {
+            // Allocate and set file position
+            switch (frame) {
+                case CONTENT:
+                    fseek(file, head.headerSize + head.lineSize * line + offset, SEEK_SET);
+                    return;
+                case FREEDLINE:
+                    fseek(file, head.headerSize + head.bodySize + 4 * line + offset, SEEK_SET);
+                    return;
+            }
         }
     }
 
@@ -397,3 +393,5 @@ namespace database {
     }
 
 }
+
+#pragma clang diagnostic pop

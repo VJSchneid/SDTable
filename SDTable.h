@@ -16,6 +16,10 @@
 #define HEADER_STATIC_SIZE          (sizeof(head) - sizeof(head.elementSize))
 #define FILE_DEFAULT_BUFFER_SIZE    256
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedStructInspection"
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
+
 namespace database {
     class SDTable {
     private:
@@ -46,7 +50,7 @@ namespace database {
         void setHead(__uint32_t elementCount, __uint32_t lineCount, __uint32_t freedLineCount,
                      __uint32_t* elementSize);
         int checkHead();
-
+        // @warning call only if FD is opened
         int requestLine();
         bool removeLine(unsigned int line);
         bool freedLine(__uint32_t line);
@@ -86,5 +90,6 @@ namespace database {
     };
 }
 
+#pragma clang diagnostic pop
 
 #endif //SDTABLE_SDTABLE_H
