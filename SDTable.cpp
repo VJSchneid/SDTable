@@ -260,6 +260,7 @@ namespace database {
         }
         else {
             // Line is last content in file
+            // TODO Override content with zeros
             head.lineCount--;
             head.bodySize -= head.lineSize;
             return true;
