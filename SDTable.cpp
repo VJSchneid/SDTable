@@ -66,7 +66,7 @@ namespace database {
         }
         // Remove buffer
         if (fileBuffer) {
-            delete fileBuffer;
+            delete[] fileBuffer;
             fileBuffer = NULL;
         }
         // Flush head
@@ -107,7 +107,7 @@ namespace database {
     inline void SDTable::flushHead() {
         // Remove dynamic content from head
         if (head.elementSize) {
-            delete head.elementSize;
+            delete[] head.elementSize;
             head.elementSize = 0;
         }
         // Remove static content from head
