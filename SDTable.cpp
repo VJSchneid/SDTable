@@ -74,7 +74,7 @@ namespace database {
     }
 
     int SDTable::create(const char *path, unsigned int elementCount, unsigned int *elementSize, unsigned int bufSize) {
-        __uint32_t* elementSizeDyn;
+        uint32_t* elementSizeDyn;
         int rValue;
         // If file opened close it
         close();
@@ -86,7 +86,7 @@ namespace database {
         // Disable buffer for file
         setvbuf(file, NULL, _IONBF, 0);
         // Create dynamic content
-        elementSizeDyn = new __uint32_t[elementCount];
+        elementSizeDyn = new uint32_t[elementCount];
         for (int x = elementCount - 1; x >= 0; x--) {
             elementSizeDyn[x] = elementSize[x];
         }
@@ -137,14 +137,14 @@ namespace database {
             return false;
         }
         // Create dynamic content
-        head.elementSize = new __uint32_t[head.elementCount];
+        head.elementSize = new uint32_t[head.elementCount];
         // Read dynamic content from file
         return fread(head.elementSize, 4, head.elementCount, file) == head.elementCount;
     }
 
     inline int SDTable::checkHead() {
         struct stat statBuf;
-        __uint32_t lineSize = 0;
+        uint32_t lineSize = 0;
         // Check Version
         if (head.version1 != SDTABLE_VERSION_1) {
             return 1;
@@ -174,9 +174,9 @@ namespace database {
         return 0;
     }
 
-    inline void SDTable::setHead(__uint32_t elementCount, __uint32_t lineCount, __uint32_t freedLineCount,
-                          __uint32_t *elementSize) {
-        __uint32_t lineSize = 0;
+    inline void SDTable::setHead(uint32_t elementCount, uint32_t lineCount, uint32_t freedLineCount,
+                          uint32_t *elementSize) {
+        uint32_t lineSize = 0;
         // Allocate some information
         // LineSize:
         for (int x = elementCount - 1; x >= 0; x--) {
@@ -220,7 +220,7 @@ namespace database {
 
     inline int SDTable::requestLine() {
         if (head.freedLineCount) {
-            __uint32_t line;
+            uint32_t line;
             head.freedLineCount--;
             setFilePos(head.freedLineCount, FREEDLINE);
             // If an error occur return -1
@@ -267,7 +267,7 @@ namespace database {
         }
     }
 
-    inline bool SDTable::freedLine(__uint32_t line) {
+    inline bool SDTable::freedLine(uint32_t line) {
         char cache = 0;
         // Clear all chars in line
         setFilePos(line);

@@ -30,16 +30,16 @@ namespace database {
 
         struct {
             // Static Content
-            __uint16_t  version1;
-            __uint16_t  version2;
-            __uint32_t  headerSize;
-            __uint32_t  elementCount;
-            __uint32_t  lineSize;
-            __uint64_t  bodySize;
-            __uint32_t  lineCount;
-            __uint32_t  freedLineCount;
+            uint16_t  version1;
+            uint16_t  version2;
+            uint32_t  headerSize;
+            uint32_t  elementCount;
+            uint32_t  lineSize;
+            uint64_t  bodySize;
+            uint32_t  lineCount;
+            uint32_t  freedLineCount;
             // Dynamic Content
-            __uint32_t* elementSize;
+            uint32_t* elementSize;
         } head;
 
         void setFilePos(unsigned int line, Frame frame = CONTENT, unsigned int offset = 0);
@@ -47,13 +47,13 @@ namespace database {
         void flushHead();
         bool writeHead();
         bool readHead();
-        void setHead(__uint32_t elementCount, __uint32_t lineCount, __uint32_t freedLineCount,
-                     __uint32_t* elementSize);
+        void setHead(uint32_t elementCount, uint32_t lineCount, uint32_t freedLineCount,
+                     uint32_t* elementSize);
         int checkHead();
         // @warning call only if FD is opened
         int requestLine();
         bool removeLine(unsigned int line);
-        bool freedLine(__uint32_t line);
+        bool freedLine(uint32_t line);
         bool checkFreed(unsigned int line);
 
     public:
