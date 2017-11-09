@@ -8,9 +8,6 @@
 
 #include <cstring>
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-
 namespace database {
     SDTable::SDTable() {
         // Set NULL pointers
@@ -70,8 +67,7 @@ namespace database {
         }
     }
 
-    int SDTable::create(const char *path, std::vector<Element> elements,
-                        const uint8_t *defaultValues, unsigned int bufSize) {
+    int SDTable::create(const char *path, std::vector<Element> elements, unsigned int bufSize) {
         Element* elementSizeHeap;
         int rValue;
         // If file opened close it
@@ -84,7 +80,7 @@ namespace database {
         // Disable buffer for file
         setvbuf(file, NULL, _IONBF, 0);
         // Save content to head
-        setHead(0, 0, std::move(elements), defaultValues);
+        setHead(0, 0, std::move(elements));
         // Write content to file
         if (!writeHead()) {
             return 2;
@@ -160,7 +156,7 @@ namespace database {
     }
 
     inline void SDTable::setHead(uint32_t lineCount, uint32_t freedLineCount,
-                          std::vector<Element> elements, const uint8_t *defaultValues) {
+                                 std::vector<Element> elements) {
         uint32_t lineSize = 0;
         // Prepare some data
         // LineSize:
@@ -378,5 +374,3 @@ namespace database {
     }
 
 }
-
-#pragma clang diagnostic pop
