@@ -6,6 +6,8 @@
 
 #include "SDTable.h"
 
+#include <cstring>
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 
@@ -14,9 +16,6 @@ namespace database {
         // Set NULL pointers
         file = NULL;
         fileBuffer = NULL;
-        head.elements = NULL;
-        // Flush Head
-        flushHead();
     }
 
     SDTable::SDTable(const char *path, unsigned int bufSize) {
@@ -69,11 +68,10 @@ namespace database {
             delete[] fileBuffer;
             fileBuffer = NULL;
         }
-        // Flush head
-        flushHead();
     }
 
-    int SDTable::create(const char *path, unsigned int elementCount, Element *elements, unsigned int bufSize) {
+    int SDTable::create(const char *path, std::vector<Element> elements,
+                        const uint8_t *defaultValues, unsigned int bufSize) {
         Element* elementSizeHeap;
         int rValue;
         // If file opened close it
@@ -85,13 +83,8 @@ namespace database {
         }
         // Disable buffer for file
         setvbuf(file, NULL, _IONBF, 0);
-        // Create dynamic content
-        elementSizeHeap = new Element[elementCount];
-        for (int x = elementCount - 1; x >= 0; x--) {
-            elementSizeHeap[x] = elements[x];
-        }
         // Save content to head
-        setHead(elementCount, 0, 0, elementSizeHeap);
+        setHead(0, 0, std::move(elements), defaultValues);
         // Write content to file
         if (!writeHead()) {
             return 2;
@@ -104,42 +97,28 @@ namespace database {
         return rValue;
     }
 
-    inline void SDTable::flushHead() {
-        // Remove dynamic content from head
-        if (head.elements) {
-            delete[] head.elements;
-            head.elements = nullptr;
-        }
-        // Remove static content from head
-        for (int x = HEADER_STATIC_SIZE - 1; x >= 0; x--) {
-            ((char*)&head)[x] = 0;
-        }
-    }
-
     inline bool SDTable::writeHead() {
         if (file) {
             // Set position to beginning of file
             rewind(file);
             // Write static & dynamic content to file
-            return fwrite(&head, 1, HEADER_STATIC_SIZE, file) == HEADER_STATIC_SIZE &&
-                   fwrite(head.elements, sizeof(Element), head.elementCount, file) == head.elementCount;
+            return fwrite(&head, 1, sizeof(StaticHead), file) == sizeof(StaticHead) &&
+                   fwrite(head.elements.data(), sizeof(Element), head.elementCount, file) == head.elementCount;
         }
         return false;
     }
 
     inline bool SDTable::readHead() {
-        // Flush head, because of deleting dynamic memory
-        flushHead();
         // Set position to beginning of file
         rewind(file);
         // Read static content from file
-        if (fread(&head, 1, HEADER_STATIC_SIZE, file) != HEADER_STATIC_SIZE) {
+        if (fread(&head, 1, sizeof(StaticHead), file) != sizeof(StaticHead)) {
             return false;
         }
         // Create dynamic content
-        head.elements = new Element[head.elementCount];
+        head.elements.resize(head.elementCount);
         // Read dynamic content from file
-        return fread(head.elements, 4, head.elementCount, file) == head.elementCount;
+        return fread(head.elements.data(), sizeof(Element), head.elementCount, file) == head.elementCount;
     }
 
     inline int SDTable::checkHead() {
@@ -150,7 +129,7 @@ namespace database {
             return 1;
         }
         // Check headerSize
-        if (head.headerSize != HEADER_STATIC_SIZE + head.elementCount * 4) {
+        if (head.headerSize != sizeof(StaticHead) + head.elementCount * sizeof(Element) + lineSize) {
             return 2;
         }
         // Check for ambiguous element ids and prepare lineSize
@@ -174,32 +153,30 @@ namespace database {
         // Get FileSize
         fstat(fileno(file), &statBuf);
         // Check FileSize
-        if (statBuf.st_size < head.headerSize + head.bodySize + head.freedLineCount * 4) {
+        if (statBuf.st_size < head.headerSize + head.bodySize + head.freedLineCount * sizeof(uint32_t)) {
             return 6;
         }
         return 0;
     }
 
-    inline void SDTable::setHead(uint32_t elementCount, uint32_t lineCount, uint32_t freedLineCount,
-                          Element *elements) {
+    inline void SDTable::setHead(uint32_t lineCount, uint32_t freedLineCount,
+                          std::vector<Element> elements, const uint8_t *defaultValues) {
         uint32_t lineSize = 0;
         // Prepare some data
         // LineSize:
-        for (int x = elementCount - 1; x >= 0; x--) {
-            lineSize += elements[x].size;
+        for (auto &element: elements) {
+            lineSize += element.size;
         }
-        // Flush current head, because of deleting dynamic memory
-        flushHead();
         // Store content
         head.version1       = SDTABLE_VERSION_1;
         head.version2       = SDTABLE_VERSION_2;
-        head.headerSize     = HEADER_STATIC_SIZE + elementCount * 4;
-        head.elementCount   = elementCount;
+        head.headerSize     = sizeof(StaticHead) + elements.size() * sizeof(Element) + lineSize;
+        head.elementCount   = elements.size();
         head.lineSize       = lineSize;
         head.lineCount      = lineCount;
         head.bodySize       = lineCount * lineSize;
         head.freedLineCount = freedLineCount;
-        head.elements       = elements;
+        head.elements       = std::move(elements);
     }
 
     int SDTable::addLine(void *container) {
