@@ -16,10 +16,6 @@
 #define HEADER_STATIC_SIZE          (sizeof(::database::SDTable::Head) - sizeof(::database::SDTable::Head::elements))
 #define FILE_DEFAULT_BUFFER_SIZE    256
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "OCUnusedStructInspection"
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-
 namespace database {
     
     struct Element {
@@ -96,7 +92,5 @@ namespace database {
         bool            getElement(unsigned int no, Element *element);
     };
 }
-
-#pragma clang diagnostic pop
 
 #endif //SDTABLE_SDTABLE_H
