@@ -179,7 +179,7 @@ namespace database {
         head.elements       = std::move(elements);
     }
 
-    int SDTable::addLine(void *container) {
+    int SDTable::addLine(const void *container) {
         if (file) {
             // Request line to store content
             int line = requestLine();
@@ -302,7 +302,7 @@ namespace database {
         return fread(container, 1, head.elements[element].size, file) == head.elements[element].size;
     }
 
-    bool SDTable::setElement(unsigned int line, unsigned int element, void *container) {
+    bool SDTable::setElement(unsigned int line, unsigned int element, const void *container) {
         unsigned int offset = 0;
         if (element >= head.elementCount || line >= head.lineCount) {
             return false;
@@ -325,7 +325,7 @@ namespace database {
         return fread(container, 1, head.lineSize, file) == head.lineSize;
     }
 
-    bool SDTable::setLine(unsigned int line, void *container) {
+    bool SDTable::setLine(unsigned int line, const void *container) {
         if (line >= head.lineCount) {
             return false;
         }

@@ -69,13 +69,13 @@ namespace database {
         void close();
 
         // Return value of -1 means an error occurred
-        int addLine(void* container);
+        int addLine(const void* container);
         bool clearLine(unsigned int line);
 
         bool getElement(unsigned int line, unsigned int element, void* container);
-        bool setElement(unsigned int line, unsigned int element, void* container);
+        bool setElement(unsigned int line, unsigned int element, const void* container);
 
-        bool setLine(unsigned int line, void* container);
+        bool setLine(unsigned int line, const void* container);
         bool getLine(unsigned int line, void* container);
 
         bool isFreed(unsigned int line);
