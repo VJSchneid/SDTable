@@ -14,7 +14,7 @@ namespace database {
         // Set NULL pointers
         file = NULL;
         fileBuffer = NULL;
-        head.elementSize = NULL;
+        head.elements = NULL;
         // Flush Head
         flushHead();
     }
@@ -73,25 +73,25 @@ namespace database {
         flushHead();
     }
 
-    int SDTable::create(const char *path, unsigned int elementCount, unsigned int *elementSize, unsigned int bufSize) {
-        uint32_t* elementSizeDyn;
+    int SDTable::create(const char *path, unsigned int elementCount, Element *elements, unsigned int bufSize) {
+        Element* elementSizeHeap;
         int rValue;
         // If file opened close it
         close();
         // Open file
-        file = fopen(path, "wb");
+        file = fopen(path, "w+b");
         if (!file) {
             return 1;
         }
         // Disable buffer for file
         setvbuf(file, NULL, _IONBF, 0);
         // Create dynamic content
-        elementSizeDyn = new uint32_t[elementCount];
+        elementSizeHeap = new Element[elementCount];
         for (int x = elementCount - 1; x >= 0; x--) {
-            elementSizeDyn[x] = elementSize[x];
+            elementSizeHeap[x] = elements[x];
         }
         // Save content to head
-        setHead(elementCount, 0, 0, elementSizeDyn);
+        setHead(elementCount, 0, 0, elementSizeHeap);
         // Write content to file
         if (!writeHead()) {
             return 2;
@@ -106,9 +106,9 @@ namespace database {
 
     inline void SDTable::flushHead() {
         // Remove dynamic content from head
-        if (head.elementSize) {
-            delete[] head.elementSize;
-            head.elementSize = 0;
+        if (head.elements) {
+            delete[] head.elements;
+            head.elements = nullptr;
         }
         // Remove static content from head
         for (int x = HEADER_STATIC_SIZE - 1; x >= 0; x--) {
@@ -122,7 +122,7 @@ namespace database {
             rewind(file);
             // Write static & dynamic content to file
             return fwrite(&head, 1, HEADER_STATIC_SIZE, file) == HEADER_STATIC_SIZE &&
-                   fwrite(head.elementSize, 4, head.elementCount, file) == head.elementCount;
+                   fwrite(head.elements, sizeof(Element), head.elementCount, file) == head.elementCount;
         }
         return false;
     }
@@ -137,9 +137,9 @@ namespace database {
             return false;
         }
         // Create dynamic content
-        head.elementSize = new uint32_t[head.elementCount];
+        head.elements = new Element[head.elementCount];
         // Read dynamic content from file
-        return fread(head.elementSize, 4, head.elementCount, file) == head.elementCount;
+        return fread(head.elements, 4, head.elementCount, file) == head.elementCount;
     }
 
     inline int SDTable::checkHead() {
@@ -153,34 +153,40 @@ namespace database {
         if (head.headerSize != HEADER_STATIC_SIZE + head.elementCount * 4) {
             return 2;
         }
-        // Allocate lineSize
-        for (int x = head.elementCount - 1; x >= 0; x--) {
-            lineSize += head.elementSize[x];
+        // Check for ambiguous element ids and prepare lineSize
+        for (int x = head.elementCount -1; x >= 0; x--) {
+            for (int y = x - 1; x >= 0; x--) {
+                if (head.elements[x].id == head.elements[y].id) {
+                    return 3;
+                }
+            }
+            // Prepare lineSize
+            lineSize += head.elements[x].size;
         }
         // Check lineSize
         if (head.lineSize != lineSize) {
-            return 3;
+            return 4;
         }
         // Check bodySize
         if (head.bodySize != head.lineCount * lineSize) {
-            return 4;
+            return 5;
         }
         // Get FileSize
         fstat(fileno(file), &statBuf);
         // Check FileSize
         if (statBuf.st_size < head.headerSize + head.bodySize + head.freedLineCount * 4) {
-            return 5;
+            return 6;
         }
         return 0;
     }
 
     inline void SDTable::setHead(uint32_t elementCount, uint32_t lineCount, uint32_t freedLineCount,
-                          uint32_t *elementSize) {
+                          Element *elements) {
         uint32_t lineSize = 0;
-        // Allocate some information
+        // Prepare some data
         // LineSize:
         for (int x = elementCount - 1; x >= 0; x--) {
-            lineSize += elementSize[x];
+            lineSize += elements[x].size;
         }
         // Flush current head, because of deleting dynamic memory
         flushHead();
@@ -193,7 +199,7 @@ namespace database {
         head.lineCount      = lineCount;
         head.bodySize       = lineCount * lineSize;
         head.freedLineCount = freedLineCount;
-        head.elementSize    = elementSize;
+        head.elements       = elements;
     }
 
     int SDTable::addLine(void *container) {
@@ -311,12 +317,12 @@ namespace database {
         }
         // Allocate offset
         for (int x = element - 1; x >= 0; x--) {
-            offset += head.elementSize[x];
+            offset += head.elements[x].size;
         }
         // Set file position
         setFilePos(line, CONTENT, offset);
         // Read content from file
-        return fread(container, 1, head.elementSize[element], file) == head.elementSize[element];
+        return fread(container, 1, head.elements[element].size, file) == head.elements[element].size;
     }
 
     bool SDTable::setElement(unsigned int line, unsigned int element, void *container) {
@@ -326,12 +332,12 @@ namespace database {
         }
         // Allocate offset
         for (int x = element - 1; x >= 0; x--) {
-            offset += head.elementSize[x];
+            offset += head.elements[x].size;
         }
         // Set file position
         setFilePos(line, CONTENT, offset);
         // Write content to file
-        return fwrite(container, 1, head.elementSize[element], file) == head.elementSize[element];
+        return fwrite(container, 1, head.elements[element].size, file) == head.elements[element].size;
     }
 
     bool SDTable::getLine(unsigned int line, void *container) {
@@ -386,11 +392,12 @@ namespace database {
         return (unsigned int) head.freedLineCount;
     }
 
-    unsigned int SDTable::getElementSize(unsigned int element) {
-        if (element >= head.elementCount) {
-            return 0;
+    bool SDTable::getElement(unsigned int no, Element *element) {
+        if (no >= head.elementCount) {
+            return false;
         }
-        return head.elementSize[element];
+        *element = head.elements[no];
+        return true;
     }
 
 }
