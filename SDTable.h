@@ -49,8 +49,7 @@ namespace database {
 
         bool writeHead();
         bool readHead();
-        void setHead(uint32_t lineCount, uint32_t freedLineCount, std::vector<Element> elements,
-                     const uint8_t *defaultValues);
+        void setHead(uint32_t lineCount, uint32_t freedLineCount, std::vector<Element> elements);
         int checkHead();
         // @warning call only if FD is opened
         int requestLine();
@@ -64,18 +63,18 @@ namespace database {
         ~SDTable();
 
         int create(const char* path, std::vector<Element> elements,
-                   const uint8_t *defaultValues, unsigned int bufSize = FILE_DEFAULT_BUFFER_SIZE);
+                   unsigned int bufSize = FILE_DEFAULT_BUFFER_SIZE);
         int open(const char* path, unsigned int bufSize = FILE_DEFAULT_BUFFER_SIZE);
         void close();
 
         // Return value of -1 means an error occurred
-        int addLine(void* container);
+        int addLine(const void* container);
         bool clearLine(unsigned int line);
 
         bool getElement(unsigned int line, unsigned int element, void* container);
-        bool setElement(unsigned int line, unsigned int element, void* container);
+        bool setElement(unsigned int line, unsigned int element, const void* container);
 
-        bool setLine(unsigned int line, void* container);
+        bool setLine(unsigned int line, const void* container);
         bool getLine(unsigned int line, void* container);
 
         bool isFreed(unsigned int line);

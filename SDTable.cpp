@@ -8,9 +8,6 @@
 
 #include <cstring>
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-
 namespace database {
     SDTable::SDTable() {
         // Set NULL pointers
@@ -70,8 +67,7 @@ namespace database {
         }
     }
 
-    int SDTable::create(const char *path, std::vector<Element> elements,
-                        const uint8_t *defaultValues, unsigned int bufSize) {
+    int SDTable::create(const char *path, std::vector<Element> elements, unsigned int bufSize) {
         Element* elementSizeHeap;
         int rValue;
         // If file opened close it
@@ -84,7 +80,7 @@ namespace database {
         // Disable buffer for file
         setvbuf(file, NULL, _IONBF, 0);
         // Save content to head
-        setHead(0, 0, std::move(elements), defaultValues);
+        setHead(0, 0, std::move(elements));
         // Write content to file
         if (!writeHead()) {
             return 2;
@@ -160,7 +156,7 @@ namespace database {
     }
 
     inline void SDTable::setHead(uint32_t lineCount, uint32_t freedLineCount,
-                          std::vector<Element> elements, const uint8_t *defaultValues) {
+                                 std::vector<Element> elements) {
         uint32_t lineSize = 0;
         // Prepare some data
         // LineSize:
@@ -179,7 +175,7 @@ namespace database {
         head.elements       = std::move(elements);
     }
 
-    int SDTable::addLine(void *container) {
+    int SDTable::addLine(const void *container) {
         if (file) {
             // Request line to store content
             int line = requestLine();
@@ -302,7 +298,7 @@ namespace database {
         return fread(container, 1, head.elements[element].size, file) == head.elements[element].size;
     }
 
-    bool SDTable::setElement(unsigned int line, unsigned int element, void *container) {
+    bool SDTable::setElement(unsigned int line, unsigned int element, const void *container) {
         unsigned int offset = 0;
         if (element >= head.elementCount || line >= head.lineCount) {
             return false;
@@ -325,7 +321,7 @@ namespace database {
         return fread(container, 1, head.lineSize, file) == head.lineSize;
     }
 
-    bool SDTable::setLine(unsigned int line, void *container) {
+    bool SDTable::setLine(unsigned int line, const void *container) {
         if (line >= head.lineCount) {
             return false;
         }
@@ -378,5 +374,3 @@ namespace database {
     }
 
 }
-
-#pragma clang diagnostic pop
