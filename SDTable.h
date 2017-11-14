@@ -31,14 +31,14 @@ namespace database {
         enum Frame {CONTENT, FREEDLINE};
 
         struct StaticHead {
-            uint16_t  version1;
-            uint16_t  version2;
-            uint32_t  headerSize;
-            uint32_t  elementCount;
-            uint32_t  lineSize;
-            uint64_t  bodySize;
-            uint32_t  lineCount;
-            uint32_t  freedLineCount;
+            uint16_t  version1 = 0;
+            uint16_t  version2 = 0;
+            uint32_t  headerSize = 0;
+            uint32_t  elementCount = 0;
+            uint32_t  lineSize = 0;
+            uint64_t  bodySize = 0;
+            uint32_t  lineCount = 0;
+            uint32_t  freedLineCount = 0;
         };
         
         struct Head: StaticHead {
