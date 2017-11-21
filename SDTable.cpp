@@ -130,7 +130,7 @@ namespace database {
         }
         // Check for ambiguous element ids and prepare lineSize
         for (int x = head.elementCount -1; x >= 0; x--) {
-            for (int y = x - 1; x >= 0; x--) {
+            for (int y = x - 1; y >= 0; y--) {
                 if (head.elements[x].id == head.elements[y].id) {
                     return 3;
                 }
@@ -166,7 +166,7 @@ namespace database {
         // Store content
         head.version1       = SDTABLE_VERSION_1;
         head.version2       = SDTABLE_VERSION_2;
-        head.headerSize     = sizeof(StaticHead) + elements.size() * sizeof(Element) + lineSize;
+        head.headerSize     = sizeof(StaticHead) + elements.size() * sizeof(Element);
         head.elementCount   = elements.size();
         head.lineSize       = lineSize;
         head.lineCount      = lineCount;
