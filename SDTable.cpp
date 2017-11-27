@@ -73,7 +73,7 @@ namespace database {
         // If file opened close it
         close();
         // Open file
-        file = fopen(path, "w+b");
+        file = fopen(path, "wb");
         if (!file) {
             return 1;
         }
