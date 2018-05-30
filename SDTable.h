@@ -17,12 +17,12 @@
 #define FILE_DEFAULT_BUFFER_SIZE    256
 
 namespace database {
-    
+
     struct Element {
         uint32_t id;
         uint32_t size;
     };
-    
+
     class SDTable {
     private:
         FILE* file;
@@ -40,7 +40,7 @@ namespace database {
             uint32_t  lineCount = 0;
             uint32_t  freedLineCount = 0;
         };
-        
+
         struct Head: StaticHead {
             std::vector<Element> elements;
         } head;
@@ -69,6 +69,7 @@ namespace database {
 
         // Return value of -1 means an error occurred
         int addLine(const void* container);
+        int addLine();
         bool clearLine(unsigned int line);
 
         bool getElement(unsigned int line, unsigned int element, void* container);

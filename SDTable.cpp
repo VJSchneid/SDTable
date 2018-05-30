@@ -197,6 +197,30 @@ namespace database {
         return -1;
     }
 
+    int SDTable::addLine() {
+        if (file) {
+            int line = requestLine();
+            if (line == -1) {
+                return -1;
+            }
+
+            setFilePos((unsigned int)line);
+
+            for (int x = head.lineSize; x > 0; x--) {
+                if (putc(0, file) != 0) {
+                    removeLine((unsigned int) line);
+                    return -1;
+                }
+            }
+
+            if (!writeHead()) {
+                return -1;
+            }
+            return line;
+        }
+        return -1;
+    }
+
     inline int SDTable::requestLine() {
         if (head.freedLineCount) {
             uint32_t line;
