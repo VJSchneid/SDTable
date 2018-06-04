@@ -68,7 +68,6 @@ namespace database {
     }
 
     int SDTable::create(const char *path, std::vector<Element> elements, unsigned int bufSize) {
-        Element* elementSizeHeap;
         int rValue;
         // If file opened close it
         close();
@@ -149,7 +148,7 @@ namespace database {
         // Get FileSize
         fstat(fileno(file), &statBuf);
         // Check FileSize
-        if (statBuf.st_size < head.headerSize + head.bodySize + head.freedLineCount * sizeof(uint32_t)) {
+        if (static_cast<uint32_t>(statBuf.st_size) < head.headerSize + head.bodySize + head.freedLineCount * sizeof(uint32_t)) {
             return 6;
         }
         return 0;
@@ -254,7 +253,7 @@ namespace database {
     }
 
     inline bool SDTable::removeLine(unsigned int line) {
-        if (line >= head.lineCount) {
+        if (file == nullptr || line >= head.lineCount) {
             return false;
         }
         // Check if line is the last content in file
@@ -309,7 +308,7 @@ namespace database {
 
     bool SDTable::getElement(unsigned int line, unsigned int element, void* container) {
         unsigned int offset = 0;
-        if (element >= head.elementCount || line >= head.lineCount) {
+        if (file == nullptr || element >= head.elementCount || line >= head.lineCount) {
             return false;
         }
         // Allocate offset
@@ -324,7 +323,7 @@ namespace database {
 
     bool SDTable::setElement(unsigned int line, unsigned int element, const void *container) {
         unsigned int offset = 0;
-        if (element >= head.elementCount || line >= head.lineCount) {
+        if (file == nullptr || element >= head.elementCount || line >= head.lineCount) {
             return false;
         }
         // Allocate offset
@@ -338,7 +337,7 @@ namespace database {
     }
 
     bool SDTable::getLine(unsigned int line, void *container) {
-        if (line >= head.lineCount) {
+        if (file == nullptr || line >= head.lineCount) {
             return false;
         }
         setFilePos(line);
@@ -346,7 +345,7 @@ namespace database {
     }
 
     bool SDTable::setLine(unsigned int line, const void *container) {
-        if (line >= head.lineCount) {
+        if (file == nullptr || line >= head.lineCount) {
             return false;
         }
         setFilePos(line);
