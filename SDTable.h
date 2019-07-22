@@ -21,6 +21,8 @@ namespace database {
     struct Element {
         uint32_t id;
         uint32_t size;
+
+        bool operator==(const Element &rhs) const;
     };
 
     class SDTable {
@@ -90,6 +92,7 @@ namespace database {
         unsigned long   getBodySize();
         unsigned int    getFreedLineCount();
         bool            getElement(unsigned int no, Element *element);
+        const std::vector<Element> &getElements() const;
     };
 }
 

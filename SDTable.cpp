@@ -396,4 +396,12 @@ namespace database {
         return true;
     }
 
+    const std::vector<Element> &SDTable::getElements() const {
+        return head.elements;
+    }
+
+    bool Element::operator==(const Element &rhs) const {
+        return id == rhs.id && size == rhs.size;
+    }
+
 }
