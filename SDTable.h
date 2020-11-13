@@ -92,6 +92,7 @@ namespace database {
         unsigned long   getBodySize();
         unsigned int    getFreedLineCount();
         bool            getElement(unsigned int no, Element *element);
+        unsigned int    getElementSize(unsigned int no);
         const std::vector<Element> &getElements() const;
     };
 }

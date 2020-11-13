@@ -396,6 +396,13 @@ namespace database {
         return true;
     }
 
+    unsigned int SDTable::getElementSize(unsigned int no) {
+        if (no >= head.elementCount) {
+            return 0;
+        }
+        return head.elements[no].size;
+    }
+
     const std::vector<Element> &SDTable::getElements() const {
         return head.elements;
     }
