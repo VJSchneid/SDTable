@@ -47,19 +47,21 @@ namespace database {
             std::vector<Element> elements;
         } head;
 
-        void setFilePos(unsigned int line, Frame frame = CONTENT, unsigned int offset = 0);
+        void setFilePos(unsigned int line, Frame frame = CONTENT,
+                        unsigned int offset = 0) const;
 
-        bool writeHead();
+        bool writeHead() const;
         bool readHead();
-        void setHead(uint32_t lineCount, uint32_t freedLineCount, std::vector<Element> elements);
-        int checkHead();
+        void setHead(uint32_t lineCount, uint32_t freedLineCount,
+                     std::vector<Element> elements);
+        int checkHead() const;
         // @warning call only if FD is opened
         int requestLine();
         bool removeLine(unsigned int line);
         bool freedLine(uint32_t line);
-        bool checkFreed(unsigned int line);
+        bool checkFreed(unsigned int line) const;
 
-    public:
+      public:
         SDTable();
         SDTable(const char* path, unsigned int bufSize = FILE_DEFAULT_BUFFER_SIZE);
         ~SDTable();
@@ -74,25 +76,27 @@ namespace database {
         int addLine();
         bool clearLine(unsigned int line);
 
-        bool getElement(unsigned int line, unsigned int element, void* container);
-        bool setElement(unsigned int line, unsigned int element, const void* container);
+        bool getElement(unsigned int line, unsigned int element,
+                        void *container) const;
+        bool setElement(unsigned int line, unsigned int element,
+                        const void *container) const;
 
-        bool setLine(unsigned int line, const void* container);
-        bool getLine(unsigned int line, void* container);
+        bool setLine(unsigned int line, const void *container) const;
+        bool getLine(unsigned int line, void *container) const;
 
-        bool isFreed(unsigned int line);
+        bool isFreed(unsigned int line) const;
 
         // HEADER QUERY INTERFACE
-        unsigned short  getVersion1();
-        unsigned short  getVersion2();
-        unsigned int    getHeaderSize();
-        unsigned int    getElementCount();
-        unsigned int    getLineSize();
-        unsigned int    getLineCount();
-        unsigned long   getBodySize();
-        unsigned int    getFreedLineCount();
-        bool            getElement(unsigned int no, Element *element);
-        unsigned int    getElementSize(unsigned int no);
+        unsigned short getVersion1() const;
+        unsigned short getVersion2() const;
+        unsigned int getHeaderSize() const;
+        unsigned int getElementCount() const;
+        unsigned int getLineSize() const;
+        unsigned int getLineCount() const;
+        unsigned long getBodySize() const;
+        unsigned int getFreedLineCount() const;
+        bool getElement(unsigned int no, Element *element) const;
+        unsigned int getElementSize(unsigned int no) const;
         const std::vector<Element> &getElements() const;
     };
 }
